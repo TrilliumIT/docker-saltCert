@@ -28,7 +28,7 @@ func (d *Driver) Create(req volume.Request) volume.Response {
 	log.WithField("Request", req).Debug("Create")
 
 	if _, err := os.Stat(volDir + req.Name); err != nil {
-		if err = os.MkdirAll(volDir+req.Name, 660); err != nil {
+		if err = os.MkdirAll(volDir+"/"+req.Name, 660); err != nil {
 			return volume.Response{Err: err.Error()}
 		}
 	}
@@ -40,7 +40,7 @@ func (d *Driver) Create(req volume.Request) volume.Response {
 	defer f.Close()
 
 	e := json.NewEncoder(f)
-	if err = e.Encode(req.Options); err != nil {
+	if err = e.Encode(req); err != nil {
 		return volume.Response{Err: err.Error()}
 	}
 	return volume.Response{}
@@ -84,7 +84,10 @@ func (d *Driver) Get(req volume.Request) volume.Response {
 func (d *Driver) Remove(req volume.Request) volume.Response {
 	log.WithField("Request", req).Debug("Remove")
 	err := os.RemoveAll(volDir + "/" + req.Name)
-	return volume.Response{Err: err.Error()}
+	if err != nil {
+		return volume.Response{Err: err.Error()}
+	}
+	return volume.Response{Err: ""}
 }
 
 func (d *Driver) Path(req volume.Request) volume.Response {
@@ -113,8 +116,10 @@ func (d *Driver) Mount(req volume.MountRequest) volume.Response {
 		return volume.Response{Err: err.Error()}
 	}
 
-	keyCmd := exec.Command("salt-call", "x509.create_private_key", "--retcode-passthrough", "path=/"+volDir+"/"+req.Name+"/key.pem")
-	certCmd := exec.Command("salt-call", "x509.create_certificate", "--retcode-passthrough", "path=/"+volDir+"/"+req.Name+"/cert.pem", "public_key=/"+volDir+"/"+req.Name+"/key.pem")
+	log.WithField("cOpts", cOpts).Debug("Options decoded")
+
+	keyCmd := exec.Command("salt-call", "x509.create_private_key", "--retcode-passthrough", "path="+volDir+"/"+req.Name+"/key.pem")
+	certCmd := exec.Command("salt-call", "x509.create_certificate", "--retcode-passthrough", "path="+volDir+"/"+req.Name+"/cert.pem", "public_key="+volDir+"/"+req.Name+"/key.pem")
 	for k, v := range cOpts.Options {
 		if strings.HasPrefix(k, "key") {
 			keyCmd.Args = append(keyCmd.Args, strings.TrimPrefix(k, "key")+"="+v)
@@ -123,12 +128,14 @@ func (d *Driver) Mount(req volume.MountRequest) volume.Response {
 		}
 	}
 
+	log.WithField("Cmd", keyCmd).Debug("Generating Private Key")
 	out, err := keyCmd.CombinedOutput()
 	if err != nil {
 		log.WithField("Salt Output", string(out)).Error("Error running salt command to generate key")
 		return volume.Response{Err: err.Error()}
 	}
 
+	log.WithField("Cmd", certCmd).Debug("Generating Cert")
 	out, err = certCmd.CombinedOutput()
 	if err != nil {
 		log.WithField("Salt Output", string(out)).Error("Error running salt command to generate key")
@@ -141,8 +148,14 @@ func (d *Driver) Mount(req volume.MountRequest) volume.Response {
 func (d *Driver) Unmount(req volume.UnmountRequest) volume.Response {
 	log.WithField("Request", req).Debug("Unmount")
 	ret := volume.Response{}
-	ret.Err += os.Remove(volDir + "/" + req.Name + "/key.pem").Error()
-	ret.Err += os.Remove(volDir + "/" + req.Name + "/cert.pem").Error()
+	err := os.Remove(volDir + "/" + req.Name + "/key.pem")
+	if err != nil {
+		ret.Err += err.Error()
+	}
+	err = os.Remove(volDir + "/" + req.Name + "/cert.pem")
+	if err != nil {
+		ret.Err += err.Error()
+	}
 	return ret
 }
 
