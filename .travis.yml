@@ -1,35 +1,29 @@
 language: go
-
 go:
 - 1.8
-
 env:
   global:
   - GO15VENDOREXPERIMENT=1
   - GOOS=linux
-
 before_install:
 - go get github.com/Masterminds/glide
-
 install:
 - "$GOPATH/bin/glide install"
 - go get -t $($GOPATH/bin/glide novendor)
-
 script:
-  - mv $GOPATH/bin/docker-saltCert ./
-  - md5sum docker-saltCert > md5.txt
-  - sha256sum docker-saltCert > sha256.txt
-  - sha512sum docker-saltCert > sha512.txt
-
+- mv $GOPATH/bin/docker-saltCert ./
+- md5sum docker-saltCert > md5.txt
+- sha256sum docker-saltCert > sha256.txt
+- sha512sum docker-saltCert > sha512.txt
 deploy:
-  - provider: releases
-    skip_cleanup: true
-    api_key:
-      secure: UWmqnRl/JdUAwzyQdJjMA/iyOnKIxm98PT8ArKJXJbwCVD1v6bqbkPURIR4qaqGS23LjFIdosWzPq0UKyUHwFo7I/QqlmXg1w9cO5Ir4IF93qyOQQvRfx+cSr/bOvzfkVofSJYEi3IgY2OnCrf73f8Zoxth8rsPml5QffXYaz4IOS/L2LnGifgL7Cy7nXwKCUD+oITO6Bqn0MdhbVPL1Pqe/gGCa0AQExmD27jn8SC9c0O8AkfNHIh9zdvkvs8mQuNDJqxwFcwvafnR+XQSgetlGc2IXCwmfYHih7TCGWbRCQEwg302sQNH3jTrcF5Iw02k923ccDG8euQjsrxHgyvmz0t6ToizScD/Lg866STUM9yshWj7cs3/xQ6J157oL6C707fVWXpSLNOVoDRcvw/LuYo37Oo0UXRfY+DQUftckKdOfBMlzxqSqPRlwDbEN8u2WWP09E4sRr1bbTpEHBrSTDFBiqWmM4yEqYIo9mTY6lNIUDlbHUsxTHfLOdcW/81SoJfzTNUoS8h6BMdx+CzvkexBySF6wGAG+ZSvPycSQVRtfWAz33XZ7tolPR/Z6y1h8UyBQ4rpMqIf0mHmcej2ZniZXPh7lsK5HPjR8Oy3Px8yBFw2VrOXJOKbW9siPD6AZ6+1noIfPSY94MV/kY3iY5N2fCoWxyW54StNMPFs=
-    file:
-      - docker-saltCert
-      - md5.txt
-      - sha256.txt
-      - sha512.txt
-    on:
-      tags: true
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: Jm96Mv/uTA//x3qhbBBMJ9/TiBHlwboIebWYGqVnEu+5vXoPlQoMuPme4yjTyGi+NVugGMCkUAYv0rG0/vGV8LcJWeUGazOhe/U6tgMefn0X6RVobsv0ZjQWzKZJ4u8xF7X5/SF3AedrT9FjUcgUhq/T9nNcOxJVU5rDV/Ng8EiG890gkp3KT4xQsZiciTvj4oKfuHLjgaR9xULHk5sbH8wAIvK57viLS/ixAgUHffVpfPZtX+uIa9dR16xlgXqkCZZq1/R+RHupS2tm6vuJFGV5x8rRO+5eFS7O9cae4mibb85NipwPLpRrtt4/VlcCABWxlqMLvs4U0tynIPiowhXwh0TU/gGxJK1RRY9hUvnw8qzfcJJ5Wtq9nh9mQwaAGR+PN0sJELXu7uejrgGyHtlvmf6GzVhPEY5lLaGa8DU+s0GCbIdXr7qniqAtJ8bR7cr4ci7jx3IsMB6Lrfmf7RxbTtX2Nd0SlviWWlLifGhwGjsBR4CQaI7VSL2iEhZ6Ppknnysu9llIZMeuXaBezP+CBbyHaCh1T3vFT2/Jf+r2Nm/PR018huKEpZZDdv1JeZvhAkqfb9cvn0Fwd/qBuuf3SIR0scOepECNmA6Mpic1YpXNmvFyCvPSgQ8tHp/XhAkJ2LIQQh5oRsJqfKZFKJ0ZGAT45Owx12DU9htFXrQ=
+  file:
+  - docker-saltCert
+  - md5.txt
+  - sha256.txt
+  - sha512.txt
+  on:
+    tags: true
