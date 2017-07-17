@@ -1,38 +1,29 @@
 hash: 8cd560440ef3ab6ac9d47b7a349dbedd3e494b4737f4b717c3f2b076b052c42c
-updated: 2016-08-19T14:14:22.866575486-04:00
+updated: 2017-07-17T13:54:32.059318882-04:00
 imports:
 - name: github.com/clinta/go-zfs
   version: 2348178ba935dff46c871cada569f0b4944105bd
 - name: github.com/coreos/go-systemd
-  version: 5c49e4850c879a0ddc061e8f4adcf307de8a8bc2
+  version: 24036eb3df68550d24a2736c5d013f4e83366866
   subpackages:
   - activation
-  - util
-- name: github.com/coreos/pkg
-  version: 3ac0863d7acf3bc44daf49afef8919af12f704ef
-  subpackages:
-  - dlopen
 - name: github.com/docker/go-connections
-  version: 0bad1a3951398f88ef4dd75fdb42af374430be89
+  version: 3ede32e2033de7505e6500d6c868c2b9ed9f169d
   subpackages:
   - sockets
 - name: github.com/docker/go-plugins-helpers
-  version: f3a3876798ee4f63bee3e7ee8911a2c27e7710b9
+  version: abb3e589c0322ddc019c2ec5f587ea0df2024869
   subpackages:
   - sdk
   - volume
 - name: github.com/Microsoft/go-winio
-  version: ce2922f643c8fd76b46cadc7f404a06282678b34
-- name: github.com/opencontainers/runc
-  version: c520720728515d546d8debe937ff489abf718b79
-  subpackages:
-  - libcontainer/user
+  version: c4dc1301f1dc0307acd38e611aa375a64dfe0642
 - name: github.com/Sirupsen/logrus
-  version: 08a8a7c27e3d058a8989316a850daad1c10bf4ab
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/urfave/cli
-  version: 168c95418e66e019fe17b8f4f5c45aa62ff80e23
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: golang.org/x/net
-  version: 07b51741c1d6423d4a6abab1c49940ec09cb1aaf
+  version: 5627bad10b821d907ac4dc81fb3535ec7dd81c2b
   subpackages:
   - proxy
 - name: golang.org/x/sys

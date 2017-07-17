@@ -1,0 +1,9 @@
+[Unit]
+Description=saltCert plugin
+Before=docker.service
+
+[Service]
+ExecStart=/usr/bin/docker-saltCert
+
+[Install]
+WantedBy=docker.service
