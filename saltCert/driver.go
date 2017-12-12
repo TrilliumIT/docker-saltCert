@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/docker/go-plugins-helpers/volume"
 )
 
@@ -24,35 +25,35 @@ func NewDriver() (*Driver, error) {
 	return &Driver{}, nil
 }
 
-func (d *Driver) Create(req volume.Request) volume.Response {
-	log.WithField("Request", req).Debug("Create")
+func (d *Driver) Create(req *volume.CreateRequest) error {
+	log.WithField("Request", spew.Sdump(req)).Debug("Create")
 
 	if _, err := os.Stat(volDir + req.Name); err != nil {
 		if err = os.MkdirAll(volDir+"/"+req.Name, 660); err != nil {
-			return volume.Response{Err: err.Error()}
+			return err
 		}
 	}
 
 	f, err := os.Create(volDir + "/" + req.Name + "/req.json")
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return err
 	}
 	defer f.Close()
 
 	e := json.NewEncoder(f)
 	if err = e.Encode(req); err != nil {
-		return volume.Response{Err: err.Error()}
+		return err
 	}
-	return volume.Response{}
+	return nil
 }
 
-func (d *Driver) List(req volume.Request) volume.Response {
-	log.WithField("Requst", req).Debug("List")
+func (d *Driver) List() (*volume.ListResponse, error) {
+	log.Debug("List")
 	var vols []*volume.Volume
 
 	fs, err := ioutil.ReadDir(volDir)
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 
 	for _, f := range fs {
@@ -62,61 +63,59 @@ func (d *Driver) List(req volume.Request) volume.Response {
 		})
 	}
 
-	return volume.Response{Volumes: vols}
+	return &volume.ListResponse{Volumes: vols}, nil
 }
 
-func (d *Driver) Get(req volume.Request) volume.Response {
-	log.WithField("Request", req).Debug("Get")
+func (d *Driver) Get(req *volume.GetRequest) (*volume.GetResponse, error) {
+	log.WithField("Request", spew.Sdump(req)).Debug("Get")
 
 	_, err := os.Stat(volDir + "/" + req.Name)
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 
-	return volume.Response{
+	return &volume.GetResponse{
 		Volume: &volume.Volume{
 			Name:       req.Name,
 			Mountpoint: volDir + "/" + req.Name,
 		},
-	}
+	}, nil
 }
 
-func (d *Driver) Remove(req volume.Request) volume.Response {
-	log.WithField("Request", req).Debug("Remove")
+func (d *Driver) Remove(req *volume.RemoveRequest) error {
+	log.WithField("Request", spew.Sdump(req)).Debug("Remove")
 	err := os.RemoveAll(volDir + "/" + req.Name)
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return err
 	}
-	return volume.Response{Err: ""}
+	return nil
 }
 
-func (d *Driver) Path(req volume.Request) volume.Response {
-	log.WithField("Request", req).Debug("Path")
-	res := d.Get(req)
-
-	if res.Err != "" {
-		return res
+func (d *Driver) Path(req *volume.PathRequest) (*volume.PathResponse, error) {
+	log.WithField("Request", spew.Sdump(req)).Debug("Path")
+	res, err := d.Get(&volume.GetRequest{Name: req.Name})
+	if err != nil {
+		return nil, err
 	}
-
-	return volume.Response{Mountpoint: res.Volume.Mountpoint, Err: ""}
+	return &volume.PathResponse{Mountpoint: res.Volume.Mountpoint}, nil
 }
 
-func (d *Driver) Mount(req volume.MountRequest) volume.Response {
-	log.WithField("Request", req).Debug("Mount")
+func (d *Driver) Mount(req *volume.MountRequest) (*volume.MountResponse, error) {
+	log.WithField("Request", spew.Sdump(req)).Debug("Mount")
 
-	cOpts := &volume.Request{}
+	cOpts := &volume.CreateRequest{}
 	cFile, err := os.Open(volDir + "/" + req.Name + "/req.json")
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 	defer cFile.Close()
 
 	err = json.NewDecoder(cFile).Decode(cOpts)
 	if err != nil {
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 
-	log.WithField("cOpts", cOpts).Debug("Options decoded")
+	log.WithField("cOpts", spew.Sdump(cOpts)).Debug("Options decoded")
 
 	keyCmd := exec.Command("salt-call", "x509.create_private_key", "--retcode-passthrough", "path="+volDir+"/"+req.Name+"/key.pem")
 	certCmd := exec.Command("salt-call", "x509.create_certificate", "--retcode-passthrough", "path="+volDir+"/"+req.Name+"/cert.pem", "public_key="+volDir+"/"+req.Name+"/key.pem")
@@ -132,34 +131,37 @@ func (d *Driver) Mount(req volume.MountRequest) volume.Response {
 	out, err := keyCmd.CombinedOutput()
 	if err != nil {
 		log.WithField("Salt Output", string(out)).Error("Error running salt command to generate key")
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 
 	log.WithField("Cmd", certCmd).Debug("Generating Cert")
 	out, err = certCmd.CombinedOutput()
 	if err != nil {
 		log.WithField("Salt Output", string(out)).Error("Error running salt command to generate key")
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 
-	return d.Path(volume.Request{Name: req.Name})
+	path, err := d.Path(&volume.PathRequest{Name: req.Name})
+	if err != nil {
+		return nil, err
+	}
+	return &volume.MountResponse{Mountpoint: path.Mountpoint}, nil
 }
 
-func (d *Driver) Unmount(req volume.UnmountRequest) volume.Response {
-	log.WithField("Request", req).Debug("Unmount")
-	ret := volume.Response{}
+func (d *Driver) Unmount(req *volume.UnmountRequest) error {
+	log.WithField("Request", spew.Sdump(req)).Debug("Unmount")
 	err := os.Remove(volDir + "/" + req.Name + "/key.pem")
 	if err != nil {
-		ret.Err += err.Error()
+		return err
 	}
 	err = os.Remove(volDir + "/" + req.Name + "/cert.pem")
 	if err != nil {
-		ret.Err += err.Error()
+		return err
 	}
-	return ret
+	return nil
 }
 
-func (d *Driver) Capabilities(req volume.Request) volume.Response {
-	log.WithField("Request", req).Debug("Capabilites")
-	return volume.Response{Capabilities: volume.Capability{Scope: "local"}}
+func (d *Driver) Capabilities() *volume.CapabilitiesResponse {
+	log.Debug("Capabilites")
+	return &volume.CapabilitiesResponse{Capabilities: volume.Capability{Scope: "local"}}
 }

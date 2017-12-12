@@ -1,33 +1,39 @@
-hash: 8cd560440ef3ab6ac9d47b7a349dbedd3e494b4737f4b717c3f2b076b052c42c
-updated: 2017-07-17T13:54:32.059318882-04:00
+hash: 80c6c250a84dc02b84fad401bff64e35c99f8c9d6eeea3745abde326fbb605a4
+updated: 2017-12-12T15:35:34.895808782-05:00
 imports:
-- name: github.com/clinta/go-zfs
-  version: 2348178ba935dff46c871cada569f0b4944105bd
 - name: github.com/coreos/go-systemd
-  version: 24036eb3df68550d24a2736c5d013f4e83366866
+  version: c966a8af8422394b2e370d90e2101adba21c14be
   subpackages:
   - activation
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
 - name: github.com/docker/go-connections
   version: 3ede32e2033de7505e6500d6c868c2b9ed9f169d
   subpackages:
   - sockets
 - name: github.com/docker/go-plugins-helpers
-  version: abb3e589c0322ddc019c2ec5f587ea0df2024869
+  version: bd8c600f0cdd76c7a57ff6aa86bd2b423868c688
   subpackages:
   - sdk
   - volume
 - name: github.com/Microsoft/go-winio
-  version: c4dc1301f1dc0307acd38e611aa375a64dfe0642
+  version: 78439966b38d69bf38227fbf57ac8a6fee70f69a
 - name: github.com/Sirupsen/logrus
-  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
+  version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
 - name: github.com/urfave/cli
-  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
+  version: 39908eb08fee7c10d842622a114a5c133fb0a3c6
+- name: golang.org/x/crypto
+  version: 94eea52f7b742c7cbe0b03b22f0c4c8631ece122
+  subpackages:
+  - ssh/terminal
 - name: golang.org/x/net
-  version: 5627bad10b821d907ac4dc81fb3535ec7dd81c2b
+  version: 0a9397675ba34b2845f758fe3cd68828369c6517
   subpackages:
   - proxy
 - name: golang.org/x/sys
-  version: a646d33e2ee3172a661fc09bca23bb4889a41bc8
+  version: 53aa286056ef226755cd898109dbcdaba8ac0b81
   subpackages:
   - unix
   - windows
